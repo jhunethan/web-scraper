@@ -4,7 +4,7 @@
 
 <h2> What does this app do? </h2>
 
-This JavaScript app downloads boxscore data from the ESPN website. It pulls the players and scores from the downloaded HTML and parses the data. Once the data is formatted correctly, the app stores the results in boxscore.json
+This JavaScript app downloads restuarant data from the Just Eat website. It pulls a list of restaurants from the downloaded HTML and parses the data. Once the data is formatted correctly, the app stores the results in restaurants.json
 
 <h2> How do I run this app </h2>
 
@@ -26,4 +26,4 @@ npm install
 npm start
 ```
 
-4. You should now see boxscore.html and boxscore.json in your root directory
+4. You should now see restaurants.json in your root directory

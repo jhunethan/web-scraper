@@ -1,4 +1,4 @@
-# HTML Web Scraper using JavaScript and Cheerio
+# HTML Web Scraper using JavaScript and Puppeteer
 
 
 

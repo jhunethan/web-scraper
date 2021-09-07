@@ -14,9 +14,16 @@ This JavaScript app downloads boxscore data from the ESPN website. It pulls the 
 git clone https://github.com/jhunethan/web-scraper
 ```
 
-2. Ensure you are in the correct directory and run the start script
+2. Ensure you are in the correct directory and install dependancies
+
+```
+npm install
+```
+
+3. Run the start script
 
 ```
 npm start
 ```
-3. You should now see boxscore.html and boxscore.json in your root directory
+
+4. You should now see boxscore.html and boxscore.json in your root directory

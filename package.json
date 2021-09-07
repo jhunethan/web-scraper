@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "exceljs": "^4.3.0",
     "puppeteer": "^10.2.0"
   },
   "scripts": {

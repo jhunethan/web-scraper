@@ -1,3 +1,4 @@
+require("dotenv").config();
 const puppeteer = require("puppeteer");
 const axios = require("axios");
 const Excel = require("exceljs");
@@ -19,7 +20,7 @@ async function getRestaurants(uri) {
     "https://maps.googleapis.com/maps/api/geocode/json",
     {
       params: {
-        key: "AIzaSyBu5niya4XrtJ75T4ntogSConpVWXi5U0o",
+        key: process.env.APIKEY,
         address: address,
       },
     }

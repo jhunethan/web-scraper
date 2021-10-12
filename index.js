@@ -78,12 +78,15 @@ async function getRestaurants(uri) {
   const restaurantName = uri.split("/")[3];
   console.log(`${restaurants.length} results found!`);
   if (restaurants.length)
-    await writeExcel(restaurants, { restaurantName, ...coordinates });
+    await writeExcelRestaurants(restaurants, {
+      restaurantName,
+      ...coordinates,
+    });
   console.log("Closing Browser...");
   await browser.close();
 }
 
-async function writeExcel(items, { restaurantName, lng, lat }) {
+async function writeExcelRestaurants(items, { restaurantName, lng, lat }) {
   const workbook = new Excel.Workbook();
   const worksheet = workbook.addWorksheet("My Sheet");
 
@@ -120,41 +123,90 @@ async function readExcel(filename, sheet) {
     const worksheet = workbook.getWorksheet(sheet);
     worksheet.eachRow({ includeEmpty: true }, function (row, rowNumber) {
       const restaurant = {};
-      restaurant.name = row.values[1];
-      restaurant.address = row.values[2];
-      restaurant.apartment = row.values[3]
+      restaurant.restaurant_name = row.values[1];
+      restaurant.street_address_1 = row.values[2];
+      restaurant.street_address_2 = row.values[3];
       restaurant.city = row.values[4];
-      restaurant.region = row.values[5];
-      restaurant.postcode = row.values[6];
+      restaurant.state = row.values[5];
+      restaurant.postal_code = row.values[6];
       restaurantData.push(restaurant);
     });
   });
-  return restaurantData.slice(0, 5);
+  return restaurantData;
 }
 
 async function getRestaurantData() {
   const revised = [];
 
-  const restaurants = await readExcel("data/wsclr.xlsx", "Sheet1");
+  console.log('Reading File...')
+  const restaurants = await readExcel("data/wscwnd.xlsx", "Sheet1");
 
   for (let i = 0; i < restaurants.length; i++) {
-    const result = await getAddress(`${restaurants[i].name} ${restaurants[i].address}`);
     const object = {
       ...restaurants[i],
     };
+    
+    console.log(`(${i}/${restaurants.length}) Processing ${restaurants[i].restaurant_name}`)
+    try {
+      const result = await getAddress(
+        `${restaurants[i].restaurant_name} ${restaurants[i].street_address_1}`
+      );
 
-    const addressData = result.data.results[0];
-    if (addressData) {
-      addressData["address_components"].forEach((locationData) => {
-        if (locationData.types.includes("postal_code"))
-          object.postcode = locationData.long_name;
-      });
+  
+      const addressData = result.data.results[0];
+      if (addressData) {
+        addressData["address_components"].forEach((locationData) => {
+          if (locationData.types.includes("postal_code"))
+            object.postal_code = locationData.long_name;
+        });
+      }
+    } catch (error) {
+      console.log(`Skipping ${restaurants[i].restaurant_name}`)
     }
-
+    
     revised.push(object);
   }
 
-  console.log(revised);
+  console.log('Writing File...')
+  await writeExcel({
+    items: revised,
+    filename: "data/wscwnd.xlsx",
+    sheet: "Sheet1",
+  });
+}
+
+async function writeExcel({ items, filename, sheet }) {
+  const workbook = new Excel.Workbook();
+  await workbook.xlsx.readFile(filename);
+
+  await workbook.removeWorksheet(1)
+
+  const worksheet = workbook.addWorksheet(sheet);
+
+
+  worksheet.columns = [
+    { header: "restaurant_name", key: "restaurant_name", width: 32 },
+    { header: "street_address_1", key: "street_address_1", width: 25 },
+    { header: "street_address_2", key: "street_address_2", width: 10 },
+    { header: "city", key: "city", width: 10 },
+    { header: "state", key: "state", width: 10 },
+    { header: "postal_code", key: "postal_code", width: 40 },
+  ];
+
+  let count = 0;
+
+  for (let i = 0; i < items.length; i++) {
+    count++;
+    worksheet.addRow({
+      id: i,
+      ...items[i],
+    });
+  }
+
+  
+  await workbook.xlsx.writeFile(`${filename}`);
+
+  console.log(`Written ${count} entries`);
 }
 
 getRestaurantData();

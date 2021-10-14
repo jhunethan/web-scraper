@@ -138,36 +138,39 @@ async function readExcel(filename, sheet) {
 async function getRestaurantData() {
   const revised = [];
 
-  console.log('Reading File...')
+  console.log("Reading File...");
   const restaurants = await readExcel("data/wscwnd.xlsx", "Sheet1");
 
   for (let i = 0; i < restaurants.length; i++) {
     const object = {
       ...restaurants[i],
     };
-    
-    console.log(`(${i}/${restaurants.length}) Processing ${restaurants[i].restaurant_name}`)
+
+    console.log(
+      `(${i}/${restaurants.length}) Processing ${restaurants[i].restaurant_name}`
+    );
     try {
       const result = await getAddress(
-        `${restaurants[i].restaurant_name} ${restaurants[i].street_address_1}`
+        `${restaurants[i].restaurant_name} ${restaurants[i].street_address_1} ${restaurants[i].city} ${restaurants[i].postal_code}`
       );
 
-  
       const addressData = result.data.results[0];
       if (addressData) {
         addressData["address_components"].forEach((locationData) => {
-          if (locationData.types.includes("postal_code"))
+          if (locationData.types.includes("postal_code")) {
             object.postal_code = locationData.long_name;
+            console.log(locationData.long_name);
+          }
         });
       }
     } catch (error) {
-      console.log(`Skipping ${restaurants[i].restaurant_name}`)
+      console.log(`Skipping ${restaurants[i].restaurant_name}`);
     }
-    
+
     revised.push(object);
   }
 
-  console.log('Writing File...')
+  console.log("Writing File...");
   await writeExcel({
     items: revised,
     filename: "data/wscwnd.xlsx",
@@ -179,10 +182,9 @@ async function writeExcel({ items, filename, sheet }) {
   const workbook = new Excel.Workbook();
   await workbook.xlsx.readFile(filename);
 
-  await workbook.removeWorksheet(1)
+  await workbook.removeWorksheet(1);
 
   const worksheet = workbook.addWorksheet(sheet);
-
 
   worksheet.columns = [
     { header: "restaurant_name", key: "restaurant_name", width: 32 },
@@ -203,7 +205,6 @@ async function writeExcel({ items, filename, sheet }) {
     });
   }
 
-  
   await workbook.xlsx.writeFile(`${filename}`);
 
   console.log(`Written ${count} entries`);
